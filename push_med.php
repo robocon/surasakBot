@@ -30,9 +30,6 @@ if ($qMedGrouup->num_rows > 0) {
     
 }
 
-$httpClient = new CurlHTTPClient(CHANNEL_ACCESS_TOKEN);
-$bot = new LINEBot($httpClient, ['channelSecret' => CHANNEL_SECRET]);
-
 foreach ($_POST as $key => $id) {
     
     $sql = "SELECT * FROM `med_scan` WHERE `id` = '$id' ";
@@ -48,24 +45,21 @@ foreach ($_POST as $key => $id) {
 
         // รูปที่ใช้ส่งใน Line
         $newImg = NGROK.'/surasakbot/'.$item['path'];
-        file_put_contents('log_med.txt', $newImg . PHP_EOL, FILE_APPEND);
 
         // ดึง user กลุ่ม admin กับ phar
         foreach ($medList as $keyMed => $medUserId) {
 
+            $httpClient = new CurlHTTPClient(CHANNEL_ACCESS_TOKEN);
+            $bot = new LINEBot($httpClient, ['channelSecret' => CHANNEL_SECRET]);
+
             $textMessageBuilder = new ImageMessageBuilder($newImg,$newImg);
             $response = $bot->pushMessage($medUserId, $textMessageBuilder);
-            file_put_contents('log_med.txt', $response . PHP_EOL, FILE_APPEND);
+            if ($response->isSucceeded()) { 
+                file_put_contents('log_med.txt', $response->getRawBody() . PHP_EOL, FILE_APPEND);
+            }
+
         }
+
     }
     
-
 }
-
-
-// if ($response->isSucceeded()) {
-//     echo 'Succeeded!';
-//     return;
-// }
-
-// echo $response->getHTTPStatus() . ' ' . $response->getRawBody();
